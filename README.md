@@ -14,7 +14,7 @@ You can download the latest released version of the converter [here](https://git
 
 ### Configuration
 
-This converter only supports output in the same format as one of the example files.
+This converter only supports output from Teradyne ICT GR228X in the same format as one of the example files.
 
 ### Parameters
 
