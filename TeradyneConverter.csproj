@@ -54,5 +54,10 @@
       <Version>5.1.159</Version>
     </PackageReference>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Examples\43420_BIO2_Extended.LOG">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

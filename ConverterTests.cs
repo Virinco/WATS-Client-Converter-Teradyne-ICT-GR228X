@@ -24,7 +24,7 @@ namespace TeradyneConverter
         {
             InitializeAPI(true);
 
-            var fileInfo = new FileInfo(@"Examples\43420_BIO2.LOG");
+            var fileInfo = new FileInfo(@"Examples\43420_BIO2_Extended.LOG");
             SetConversionSource(fileInfo, new Dictionary<string, string>(), new Dictionary<string, string>());
 
             var converter = new TeradyneICT(new Dictionary<string, string>());
