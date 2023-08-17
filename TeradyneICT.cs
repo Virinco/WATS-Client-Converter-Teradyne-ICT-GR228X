@@ -266,7 +266,7 @@ namespace TeradyneConverter
         {
             currentCulture = new CultureInfo("en-US"); //Use english culture info
 
-            //Requested by Kitron
+            //Custom properties            
             searchFields.AddExactField(UUTField.PartNumber, ReportReadState.InTest, "WATS_partNumber=", null, typeof(string));
             searchFields.AddExactField(UUTField.PartRevisionNumber, ReportReadState.InTest, "WATS_partRevision=", null, typeof(string));
             searchFields.AddExactField(UUTField.SequenceName, ReportReadState.InTest, "WATS_sequenceName=", null, typeof(string));
