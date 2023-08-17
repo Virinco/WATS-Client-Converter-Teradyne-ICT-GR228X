@@ -265,6 +265,15 @@ namespace TeradyneConverter
             : base(args)
         {
             currentCulture = new CultureInfo("en-US"); //Use english culture info
+
+            //Custom properties            
+            searchFields.AddExactField(UUTField.PartNumber, ReportReadState.InTest, "WATS_partNumber=", null, typeof(string));
+            searchFields.AddExactField(UUTField.PartRevisionNumber, ReportReadState.InTest, "WATS_partRevision=", null, typeof(string));
+            searchFields.AddExactField(UUTField.SequenceName, ReportReadState.InTest, "WATS_sequenceName=", null, typeof(string));
+            searchFields.AddExactField(UUTField.SequenceVersion, ReportReadState.InTest, "WATS_sequenceVersion=", null, typeof(string));
+            searchFields.AddExactField(UUTField.Operator, ReportReadState.InTest, "WATS_operator=", null, typeof(string));
+            searchFields.AddExactField(UUTField.StationName, ReportReadState.InTest, "WATS_stationName=", null, typeof(string));
+
             //F:\BOARDS\ABB_DA\43420_BIO2_PROGRAM\43420_BIO2.obc[31-JUL-12  14:17:35
             const string regStartProgram = @"^*.:.*\x5C(?<PartNumber>.*)_.*[.](?i:OBC)\x5B(?<DateTime>[1-9-A-Z]+ +[0-9:]+)";
             SearchFields.RegExpSearchField fmt = searchFields.AddRegExpField("StartProgram", ReportReadState.InHeader, regStartProgram, "", typeof(Match));
