@@ -131,7 +131,15 @@ namespace TeradyneConverter
             switch (match.matchField.fieldName)
             {
                 case "StartProgram":
-                    currentPartNumber = (string)match.GetSubField("PartNumber");
+                    //e.g. {FileName}(?<PartNumber>[^_]+)_
+                    //e.g. (?<Drive>[a-zA-Z]*:)?(?<Path>(?:\\[^\\]+)+\\)?(?<FileName>[^\\]+)\.obc\x5B(?<DateTime>[1-9-A-Z]+ +[0-9:]+)
+                    string regExPN =ConverterParameters["partNumberRegEx"];
+                    string fileName = (string)match.GetSubField("FileName");
+                    string path = (string)match.GetSubField("Path");
+                    if (regExPN.StartsWith("{FileName}"))
+                        currentPartNumber=new Regex(regExPN.Replace("{FileName}","")).Match(fileName).Groups["PartNumber"].Value;
+                    else if (regExPN.StartsWith("{Path}"))
+                        currentPartNumber = new Regex(regExPN.Replace("{Path}", "")).Match(fileName).Groups["PartNumber"].Value;
                     currentSequenceName = match.completeLine.Substring(0, match.completeLine.IndexOf('['));
                     break;
                 case "StartTest":
@@ -141,6 +149,16 @@ namespace TeradyneConverter
                     currentUUT.SequenceName = currentSequenceName;
                     if (!String.IsNullOrEmpty(converterArguments["stationName"])) currentUUT.StationName = converterArguments["stationName"]; //Use StationName in converter.xml if specified
                     break;
+
+                case "StartPanel":
+                    for (int i = 1; i < match.regExpMatch.Groups.Count; i++)
+                        if (!string.IsNullOrEmpty(match.regExpMatch.Groups[i].Value))
+                        {
+                            currentUUT.TestSocketIndex = (short)i;
+                            break;
+                        }
+                    break;
+
                 case "MainEvent":
                     Event ev = mainEvents[(char)match.GetSubField("Event")];
                     switch (ev)
@@ -186,7 +204,7 @@ namespace TeradyneConverter
 
                         //Skip UUT if it doesn't have any steps and staus == terminated 
                         if( !(currentUUT.Status == UUTStatusType.Terminated && currentStep.StepOrderNumber <= 1) )
-                            apiRef.Submit(SubmitMethod.Offline, currentUUT); //TODO: OffLine
+                            apiRef.Submit(currentUUT); 
                     }
                     catch (Exception ex)
                     {
@@ -258,12 +276,31 @@ namespace TeradyneConverter
             return true;
         }
 
-        public TeradyneICT() :
-            base() { }
+
+        Dictionary<string,string> ExtraArguments = 
+            new Dictionary<string, string>
+            {
+                {"startProgramRegEx",@"(?<Drive>[a-zA-Z]*:)?(?<Path>(?:\\[^\\]+)+\\)?(?<FileName>[^\\]+)\.obc\x5B(?<DateTime>[1-9-A-Z]+ +[0-9:]+)"},
+                {"partNumberRegEx", @"{FileName}(?<PartNumber>[^_]+)_?" },
+                {"socketNumberRegEx", @"TOP_OF_LOOP-(?:(A)|(B)|(C)|(D)|(E)|(F)|(G)|(H))" }
+            };
+
+        public TeradyneICT() : base() 
+        {
+            foreach (var keyValuePair in ExtraArguments)
+            {
+                ConverterParameters.Add(keyValuePair.Key,keyValuePair.Value);
+            }
+        }
 
         public TeradyneICT(IDictionary<string, string> args)
             : base(args)
         {
+            //Existing converters need to merge these, note - users should reinstall converter in client to get these as Client parameters
+            foreach (var keyValuePair in ExtraArguments)
+            {
+                if (!ConverterParameters.ContainsKey(keyValuePair.Key)) ConverterParameters.Add(keyValuePair.Key, keyValuePair.Value);
+            }
             currentCulture = new CultureInfo("en-US"); //Use english culture info
 
             //Custom properties            
@@ -275,17 +312,22 @@ namespace TeradyneConverter
             searchFields.AddExactField(UUTField.StationName, ReportReadState.InTest, "WATS_stationName=", null, typeof(string));
 
             //F:\BOARDS\ABB_DA\43420_BIO2_PROGRAM\43420_BIO2.obc[31-JUL-12  14:17:35
-            const string regStartProgram = @"^*.:.*\x5C(?<PartNumber>.*)_.*[.](?i:OBC)\x5B(?<DateTime>[1-9-A-Z]+ +[0-9:]+)";
-            SearchFields.RegExpSearchField fmt = searchFields.AddRegExpField("StartProgram", ReportReadState.InHeader, regStartProgram, "", typeof(Match));
-            fmt.AddSubField("PartNumber", typeof(string), null, UUTField.UserDefined); //TODO: Missing revision
+            string regStartProgram = ConverterParameters["startProgramRegEx"];
+            SearchFields.RegExpSearchField fmt = searchFields.AddRegExpField("StartProgram", ReportReadState.InHeader, regStartProgram, "", typeof(string));
+            fmt.AddSubField("Drive", typeof(string));
+            fmt.AddSubField("Path", typeof(string));
+            fmt.AddSubField("FileName", typeof(string));
             fmt.AddSubField("DateTime", typeof(DateTime), "dd-MMM-yy  HH:mm:ss"); //Ignore
 
             //@31-JUL-12  14:18:51 SN MP3774501MRS050643E
             const string regStartTest = @"^@(?<DateTime>[1-9-A-Z]+ +[0-9:]+) SN (?<SerialNumber>.+)";
-            fmt = searchFields.AddRegExpField(UUTField.UseSubFields, ReportReadState.InHeader, regStartTest, "", typeof(Match), ReportReadState.InTest);
+            fmt = searchFields.AddRegExpField(UUTField.UseSubFields, ReportReadState.InHeader, regStartTest, "", typeof(string), ReportReadState.InTest);
             fmt.fieldName = "StartTest";
             fmt.AddSubField("DateTime", typeof(DateTime), "dd-MMM-yy  HH:mm:ss", UUTField.StartDateTime);
             fmt.AddSubField("SerialNumber", typeof(string), null, UUTField.SerialNumber);
+
+            string regStartPanel = ConverterParameters["socketNumberRegEx"];
+            fmt = searchFields.AddRegExpField("StartPanel", ReportReadState.InTest, regStartPanel, "", typeof(string));
 
             //?31-JUL-12  14:18:59
             //"25-AUG-12  09:05:10
@@ -294,7 +336,7 @@ namespace TeradyneConverter
             //!25-AUG-12  08:56:29
             //]25-AUG-12  08:59:07
             const string regMainEvent = @"^(?<Event>[?""/&!\x5D])(?<DateTime>[1-9-A-Z]+ +[0-9:]+)";
-            fmt = searchFields.AddRegExpField("MainEvent", ReportReadState.InTest, regMainEvent, "", typeof(Match), ReportReadState.InHeader);
+            fmt = searchFields.AddRegExpField("MainEvent", ReportReadState.InTest, regMainEvent, "", typeof(string), ReportReadState.InHeader);
             fmt.AddSubField("Event", typeof(char));
             fmt.AddSubField("DateTime", typeof(DateTime), "dd-MMM-yy  HH:mm:ss");
 
@@ -304,15 +346,15 @@ namespace TeradyneConverter
             //(C SCRATCHPROBING connection failure
             //(F CONTACT fixture failure
             const string regFailuresGen = @"^(?<Key>\x28S|\x28O|\x28B|\x28C|\x28F) *(?<Info>.*)";
-            fmt = searchFields.AddRegExpField("FailuresGen", ReportReadState.InTest, regFailuresGen, "", typeof(Match));
+            fmt = searchFields.AddRegExpField("FailuresGen", ReportReadState.InTest, regFailuresGen, "", typeof(string));
             fmt.AddSubField("Key", typeof(string));
             fmt.AddSubField("Info", typeof(string));
 
             //K500_RLY1_NO=62.532611M(-500M,500M)V 
             //K500_CLEAR#(,)VS
             //V404=6.96336(0,20)RP
-            const string regMeasure = @"^(?<CompRef>\w+?)(?<Result>[=<>#%])(?<meas>[0-9.E+-]*)(?<measU>(?:MEG*)|(?:[NPUMK]*))\x28*(?<LowLim>[0-9.E+-]*)(?<LowLimU>(?:MEG*)|(?:[NPUMK]*)),*(?<HighLim>[0-9.E+-]*)(?<HighLimU>(?:MEG*)|(?:[NPUMK]*))\x29*(?<Type>\w*) *=*(?<Message>.*)";
-            fmt = searchFields.AddRegExpField("Measure", ReportReadState.InTest, regMeasure, null, typeof(Match));
+            const string regMeasure = @"^(?<CompRef>[^=<>#%]+)(?<Result>[=<>#%])(?<meas>[0-9.E+-]*)(?<measU>(?:MEG*)|(?:[NPUMK]*))\x28*(?<LowLim>[0-9.E+-]*)(?<LowLimU>(?:MEG*)|(?:[NPUMK]*)),*(?<HighLim>[0-9.E+-]*)(?<HighLimU>(?:MEG*)|(?:[NPUMK]*))\x29*(?<Type>\w*) *=*(?<Message>.*)";
+            fmt = searchFields.AddRegExpField("Measure", ReportReadState.InTest, regMeasure, null, typeof(string));
             fmt.AddSubField("CompRef", typeof(string));
             fmt.AddSubField("Result", typeof(string));
             fmt.AddSubField("meas", typeof(string));

@@ -14,8 +14,8 @@ namespace TeradyneConverter
         [TestMethod]
         public void SetupClient()
         {
-            SetupAPI(null, "", "Test", true);
-            RegisterClient("your wats", "username", "password");
+            //SetupAPI(null, "", "Test", true);
+            RegisterClient("https://debug.wats.com", "", "VGVzdENsaWVudDpZSDE5SzFGYTI2WjQzNjJ0IzdpNEFHejA1NlEyY2E=");
             InitializeAPI(true);
         }
 
@@ -24,12 +24,11 @@ namespace TeradyneConverter
         {
             InitializeAPI(true);
 
-            var fileInfo = new FileInfo(@"Examples\43420_BIO2_Extended.LOG");
-            SetConversionSource(fileInfo, new Dictionary<string, string>(), new Dictionary<string, string>());
-
-            var converter = new TeradyneICT(new Dictionary<string, string>());
+            var fileInfo = new FileInfo(@"Examples\ExampleWithPanel.LOG");
+            var converter = new TeradyneICT(new TeradyneICT().ConverterParameters);            
             using (FileStream file = fileInfo.Open(FileMode.Open))
             {
+                SetConversionSource(fileInfo, new Dictionary<string, string>(), converter.ConverterParameters);
                 converter.ImportReport(this, file);
             }
         }
