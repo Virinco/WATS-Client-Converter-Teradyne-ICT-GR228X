@@ -275,13 +275,13 @@ namespace TeradyneConverter
             searchFields.AddExactField(UUTField.StationName, ReportReadState.InTest, "WATS_stationName=", null, typeof(string));
 
             //F:\BOARDS\ABB_DA\43420_BIO2_PROGRAM\43420_BIO2.obc[31-JUL-12  14:17:35
-            const string regStartProgram = @"^*.:.*\x5C(?<PartNumber>.*)_.*[.](?i:OBC)\x5B(?<DateTime>[1-9-A-Z]+ +[0-9:]+)";
+            const string regStartProgram = @"^*.:.*\x5C(?<PartNumber>.*)_.*[.](?i:OBC)\x5B(?<DateTime>[0-9-A-Z]+ +[0-9:]+)";
             SearchFields.RegExpSearchField fmt = searchFields.AddRegExpField("StartProgram", ReportReadState.InHeader, regStartProgram, "", typeof(Match));
             fmt.AddSubField("PartNumber", typeof(string), null, UUTField.UserDefined); //TODO: Missing revision
             fmt.AddSubField("DateTime", typeof(DateTime), "dd-MMM-yy  HH:mm:ss"); //Ignore
 
             //@31-JUL-12  14:18:51 SN MP3774501MRS050643E
-            const string regStartTest = @"^@(?<DateTime>[1-9-A-Z]+ +[0-9:]+) SN (?<SerialNumber>.+)";
+            const string regStartTest = @"^@(?<DateTime>[0-9-A-Z]+ +[0-9:]+) SN (?<SerialNumber>.+)";
             fmt = searchFields.AddRegExpField(UUTField.UseSubFields, ReportReadState.InHeader, regStartTest, "", typeof(Match), ReportReadState.InTest);
             fmt.fieldName = "StartTest";
             fmt.AddSubField("DateTime", typeof(DateTime), "dd-MMM-yy  HH:mm:ss", UUTField.StartDateTime);
@@ -293,7 +293,7 @@ namespace TeradyneConverter
             //&25-AUG-12  14:11:33
             //!25-AUG-12  08:56:29
             //]25-AUG-12  08:59:07
-            const string regMainEvent = @"^(?<Event>[?""/&!\x5D])(?<DateTime>[1-9-A-Z]+ +[0-9:]+)";
+            const string regMainEvent = @"^(?<Event>[?""/&!\x5D])(?<DateTime>[01-9-A-Z]+ +[0-9:]+)";
             fmt = searchFields.AddRegExpField("MainEvent", ReportReadState.InTest, regMainEvent, "", typeof(Match), ReportReadState.InHeader);
             fmt.AddSubField("Event", typeof(char));
             fmt.AddSubField("DateTime", typeof(DateTime), "dd-MMM-yy  HH:mm:ss");
