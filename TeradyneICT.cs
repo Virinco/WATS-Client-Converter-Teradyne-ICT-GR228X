@@ -125,6 +125,12 @@ namespace TeradyneConverter
             }
         }
         int reportCount = 0;
+
+        protected override string PreProcessLine(string line)
+        {
+            return base.PreProcessLine(line);
+        }
+    
         protected override bool ProcessMatchedLine(TextConverterBase.SearchFields.SearchMatch match, ref TextConverterBase.ReportReadState readState)
         {
             if (match == null) return true;
@@ -280,7 +286,7 @@ namespace TeradyneConverter
         Dictionary<string,string> ExtraArguments = 
             new Dictionary<string, string>
             {
-                {"startProgramRegEx",@"(?<Drive>[a-zA-Z]*:)?(?<Path>(?:\\[^\\]+)+\\)?(?<FileName>[^\\]+)\.obc\x5B(?<DateTime>[1-9-A-Z]+ +[0-9:]+)"},
+                {"startProgramRegEx",@"(?<Drive>[a-zA-Z]*:)?(?<Path>(?:\\[^\\]+)+\\)?(?<FileName>[^\\]+)\.obc\x5B(?<DateTime>[0-9-A-Z]+ +[0-9:]+)"},
                 {"partNumberRegEx", @"{FileName}(?<PartNumber>[^_]+)_?" },
                 {"socketNumberRegEx", @"TOP_OF_LOOP-(?:(A)|(B)|(C)|(D)|(E)|(F)|(G)|(H))" }
             };
@@ -335,8 +341,9 @@ namespace TeradyneConverter
             //&25-AUG-12  14:11:33
             //!25-AUG-12  08:56:29
             //]25-AUG-12  08:59:07
+
             const string regMainEvent = @"^(?<Event>[?""/&!\x5D])(?<DateTime>[01-9-A-Z]+ +[0-9:]+)";
-            fmt = searchFields.AddRegExpField("MainEvent", ReportReadState.InTest, regMainEvent, "", typeof(Match), ReportReadState.InHeader);
+            fmt = searchFields.AddRegExpField("MainEvent", ReportReadState.InTest, regMainEvent, "", typeof(string), ReportReadState.InHeader);
             fmt.AddSubField("Event", typeof(char));
             fmt.AddSubField("DateTime", typeof(DateTime), "dd-MMM-yy  HH:mm:ss");
 

@@ -61,6 +61,9 @@
     <None Include="Examples\43420_BIO2_Extended.LOG">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="Examples\CB311.LOG">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="Examples\ExampleWithPanel.LOG">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

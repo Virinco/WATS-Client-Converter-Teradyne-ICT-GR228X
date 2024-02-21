@@ -15,7 +15,6 @@ namespace TeradyneConverter
         public void SetupClient()
         {
             //SetupAPI(null, "", "Test", true);
-            RegisterClient("https://debug.wats.com", "", "VGVzdENsaWVudDpZSDE5SzFGYTI2WjQzNjJ0IzdpNEFHejA1NlEyY2E=");
             InitializeAPI(true);
         }
 
