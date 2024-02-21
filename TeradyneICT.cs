@@ -335,8 +335,8 @@ namespace TeradyneConverter
             //&25-AUG-12  14:11:33
             //!25-AUG-12  08:56:29
             //]25-AUG-12  08:59:07
-            const string regMainEvent = @"^(?<Event>[?""/&!\x5D])(?<DateTime>[1-9-A-Z]+ +[0-9:]+)";
-            fmt = searchFields.AddRegExpField("MainEvent", ReportReadState.InTest, regMainEvent, "", typeof(string), ReportReadState.InHeader);
+            const string regMainEvent = @"^(?<Event>[?""/&!\x5D])(?<DateTime>[01-9-A-Z]+ +[0-9:]+)";
+            fmt = searchFields.AddRegExpField("MainEvent", ReportReadState.InTest, regMainEvent, "", typeof(Match), ReportReadState.InHeader);
             fmt.AddSubField("Event", typeof(char));
             fmt.AddSubField("DateTime", typeof(DateTime), "dd-MMM-yy  HH:mm:ss");
 
