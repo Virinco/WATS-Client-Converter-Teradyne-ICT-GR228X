@@ -100,6 +100,7 @@ namespace TeradyneConverter
             {"XS", new TestType(){Description="MEAS ACZ XS",Unit=""}},
             {"XP", new TestType(){Description="MEAS ACZ XP",Unit=""}},
             {"ZM", new TestType(){Description="MEAS ACZ Z",Unit=""}},
+            {"PS", new TestType(){Description="MEAS",Unit=""}},
         };
 
         Dictionary<string, string> genFailures = new Dictionary<string, string>()
@@ -167,6 +168,7 @@ namespace TeradyneConverter
 
                 case "MainEvent":
                     Event ev = mainEvents[(char)match.GetSubField("Event")];
+                    
                     switch (ev)
                     {
                         case Event.Aborted:
@@ -209,7 +211,7 @@ namespace TeradyneConverter
                         }
 
                         //Skip UUT if it doesn't have any steps and staus == terminated 
-                        if( !(currentUUT.Status == UUTStatusType.Terminated && currentStep.StepOrderNumber <= 1) )
+                        if (!(currentUUT.Status == UUTStatusType.Terminated && currentStep.StepOrderNumber <= 1))
                             apiRef.Submit(currentUUT); 
                     }
                     catch (Exception ex)
@@ -242,9 +244,10 @@ namespace TeradyneConverter
                     if (meas != "")
                     {
                         currentStep = currentSequence.AddNumericLimitStep(stepName);
-                        double measDouble = (double)ConvertStringToAny(meas, typeof(double), null, currentCulture);
-                        double lowLimitDouble = ConvertFromToUnit((double)ConvertStringToAny(lowLimit, typeof(double), null, currentCulture), lowLimitUnit, measUnit);
-                        double highLimitDouble = ConvertFromToUnit((double)ConvertStringToAny(highLimit, typeof(double), null, currentCulture), highLimitUnit, measUnit);
+                        //double measDouble = (double)ConvertStringToAny(meas, typeof(double), null, currentCulture);
+                        double measDouble = ConvertFromToUnit((double)ConvertStringToAny(meas, typeof(double), null, currentCulture), measUnit, lowLimitUnit);
+                        double lowLimitDouble = ConvertFromToUnit((double)ConvertStringToAny(lowLimit, typeof(double), null, currentCulture), lowLimitUnit, lowLimitUnit);
+                        double highLimitDouble = ConvertFromToUnit((double)ConvertStringToAny(highLimit, typeof(double), null, currentCulture), highLimitUnit, lowLimitUnit);
                         string units = String.Format("{0}({1})", measUnit.Symbol, testType);
                         if (lowLimit == "" && highLimit == "")
                             ((NumericLimitStep)currentStep).AddTest(measDouble, units);
@@ -286,7 +289,7 @@ namespace TeradyneConverter
         Dictionary<string,string> ExtraArguments = 
             new Dictionary<string, string>
             {
-                {"startProgramRegEx",@"(?<Drive>[a-zA-Z]*:)?(?<Path>(?:\\[^\\]+)+\\)?(?<FileName>[^\\]+)\.obc\x5B(?<DateTime>[0-9-A-Z]+ +[0-9:]+)"},
+                {"startProgramRegEx",@"(?<Drive>[a-zA-Z]*:)(?<Path>.*\\)?(?<FileName>[^\\]+)\.obc\[(?<DateTime>.*)"},
                 {"partNumberRegEx", @"{FileName}(?<PartNumber>[^_]+)_?" },
                 {"socketNumberRegEx", @"TOP_OF_LOOP-(?:(A)|(B)|(C)|(D)|(E)|(F)|(G)|(H))" }
             };
@@ -326,7 +329,7 @@ namespace TeradyneConverter
             fmt.AddSubField("DateTime", typeof(DateTime), "dd-MMM-yy  HH:mm:ss"); //Ignore
 
             //@31-JUL-12  14:18:51 SN MP3774501MRS050643E
-            const string regStartTest = @"^@(?<DateTime>[1-9-A-Z]+ +[0-9:]+) SN (?<SerialNumber>.+)";
+            const string regStartTest = @"^@(?<DateTime>.*) SN (?<SerialNumber>.*)";
             fmt = searchFields.AddRegExpField(UUTField.UseSubFields, ReportReadState.InHeader, regStartTest, "", typeof(string), ReportReadState.InTest);
             fmt.fieldName = "StartTest";
             fmt.AddSubField("DateTime", typeof(DateTime), "dd-MMM-yy  HH:mm:ss", UUTField.StartDateTime);
@@ -341,8 +344,7 @@ namespace TeradyneConverter
             //&25-AUG-12  14:11:33
             //!25-AUG-12  08:56:29
             //]25-AUG-12  08:59:07
-
-            const string regMainEvent = @"^(?<Event>[?""/&!\x5D])(?<DateTime>[01-9-A-Z]+ +[0-9:]+)";
+            const string regMainEvent = @"^(?<Event>[?""/&!\]])(?<DateTime>.*)";
             fmt = searchFields.AddRegExpField("MainEvent", ReportReadState.InTest, regMainEvent, "", typeof(string), ReportReadState.InHeader);
             fmt.AddSubField("Event", typeof(char));
             fmt.AddSubField("DateTime", typeof(DateTime), "dd-MMM-yy  HH:mm:ss");
@@ -373,7 +375,5 @@ namespace TeradyneConverter
             fmt.AddSubField("Type", typeof(string));
             fmt.AddSubField("Message", typeof(string));
         }
-
-
     }
 }
