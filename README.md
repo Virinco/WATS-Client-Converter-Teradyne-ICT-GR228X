@@ -9,8 +9,9 @@ A WATS Client converter plugin for importing test data from Teradyne ICT GR228X 
 * [About creating custom converters](https://virinco.zendesk.com/hc/en-us/articles/207424593)
 
 ## Download
+Download link to Wats Client and installation guide: [WATS Client Installation Guide](https://support.virinco.com/hc/en-us/sections/360003392680-WATS-Client-releases).
 
-You can download the latest released version of the converter [here](https://github.com/Virinco/WATS-Client-Converter-Teradyne-ICT-GR228X/releases/latest). See the Custom Converter section in the [WATS Client Installation Guide](https://wats.com/download) for your version of the WATS Client for how to install a converter.
+You can download the latest version of the converter [here](https://github.com/Virinco/WATS-Client-Converter-Teradyne-ICT-GR228X/releases/latest). A step-by-step guide on how to install the converter is available [here](https://support.virinco.com/hc/en-us/articles/13344321749788-Setting-up-a-custom-converter). 
 
 ### Test-software configuration
 
