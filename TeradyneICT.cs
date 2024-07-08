@@ -362,7 +362,8 @@ namespace TeradyneConverter
             //K500_RLY1_NO=62.532611M(-500M,500M)V 
             //K500_CLEAR#(,)VS
             //V404=6.96336(0,20)RP
-            const string regMeasure = @"^(?<CompRef>[^=<>#%]+)(?<Result>[=<>#%])(?<meas>[0-9.E+-]*)(?<measU>(?:MEG*)|(?:[NPUMK]*))\x28*(?<LowLim>[0-9.E+-]*)(?<LowLimU>(?:MEG*)|(?:[NPUMK]*)),*(?<HighLim>[0-9.E+-]*)(?<HighLimU>(?:MEG*)|(?:[NPUMK]*))\x29*(?<Type>\w*) *=*(?<Message>.*)";
+            // Scientific notation regex taken from: https://stackoverflow.com/questions/638565/parsing-scientific-notation-sensibly
+            const string regMeasure = @"^(?<CompRef>[^=<>#%]+)(?<Result>[=<>#%])(?<meas>([+\-]?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+\-]?\d+)?)*)(?<measU>(?:MEG*)|(?:[NPUMK]*))\x28*(?<LowLim>([+\-]?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+\-]?\d+)?)*)(?<LowLimU>(?:MEG*)|(?:[NPUMK]*)),*(?<HighLim>([+\-]?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+\-]?\d+)?)*)(?<HighLimU>(?:MEG*)|(?:[NPUMK]*))\x29*(?<Type>\w*) *=*(?<Message>.*)";
             fmt = searchFields.AddRegExpField("Measure", ReportReadState.InTest, regMeasure, null, typeof(string));
             fmt.AddSubField("CompRef", typeof(string));
             fmt.AddSubField("Result", typeof(string));

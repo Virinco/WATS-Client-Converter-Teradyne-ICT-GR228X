@@ -53,11 +53,6 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="WATS.Client">
-      <Version>6.1.101</Version>
-    </PackageReference>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Examples\43420_BIO2_Extended.LOG">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -67,6 +62,11 @@
     <None Include="Examples\ExampleWithPanel.LOG">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="WATS.Client">
+      <Version>6.1.116</Version>
+    </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
